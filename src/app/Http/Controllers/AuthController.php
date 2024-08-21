@@ -27,7 +27,7 @@ class AuthController extends Controller
     }
 
 
-    //login機能
+    //ログイン機能
     public function login(Request $request) {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
@@ -45,19 +45,12 @@ class AuthController extends Controller
     }
 
 
-    //logout機能
+    //ログアウト機能
     public function logout(Request $request) {
         Auth::logout(); // ユーザーのログアウト
         $request->session()->invalidate(); // セッションの無効化
         $request->session()->regenerateToken(); // CSRFトークンの再生成
 
         return response()->json(['message' => 'ログアウト成功'], 200);
-    }
-
-
-    // ユーザー一覧を返す機能
-    public function getUsers() {
-        $users = User::all();
-        return response()->json(compact('users'),200);
     }
 }
