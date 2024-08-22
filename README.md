@@ -21,7 +21,13 @@
     cd Rese-back
     ```
 
-3. phpコンテナにログイン→`composer`をインストールします。
+3. Docker Composeを使用してコンテナを作成・起動します。※Docker Descktop起動時に実行してください。
+
+    ```bash
+    docker-compose up -d --build
+    ```
+
+4. phpコンテナにログイン→`composer`をインストールします。
 
     ```bash
     docker-compose exec php bash
@@ -30,13 +36,13 @@
     composer install
     ```
 
-4. `.env.example`ファイルをコピーして`.env`ファイルを作成します。
+5. `.env.example`ファイルをコピーして`.env`ファイルを作成します。
 
     ```bash
     cp .env.example .env
     ```
 
-5. `.env`ファイルを編集し、必要な環境変数を設定します（11～16行目）。
+6. `.env`ファイルを編集し、必要な環境変数を設定します（11～16行目）。
 
    ```
    DB_CONNECTION=mysql
@@ -47,13 +53,13 @@
    DB_PASSWORD=laravel_pass
    ```
 
-6. アプリケーションキーを生成します。
+7. アプリケーションキーを生成します。
 
     ```bash
     php artisan key:generate
     ```
 
-7. データベースのマイグレーションを実行します。
+8. データベースのマイグレーションを実行します。
 
     ```bash
     php artisan migrate
@@ -65,7 +71,7 @@
     php artisan db:seed
     ```
 
-5. アプリケーションがhttp://localhost:3000 で利用可能になります。
+10. アプリケーションがhttp://localhost:3000 で利用可能になります。
    ※Rese-frontの環境構築が必要です。
 
 ## 仕様技術(実行環境)
