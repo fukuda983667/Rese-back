@@ -65,6 +65,9 @@
     php artisan db:seed
     ```
 
+5. アプリケーションがhttp://localhost:3000 で利用可能になります。
+   ※Rese-frontの環境構築が必要です。
+
 ## 仕様技術(実行環境)
 
 - PHP : 8.1.18
