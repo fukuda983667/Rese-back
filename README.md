@@ -87,3 +87,9 @@ backはRESTfull APIの提供をします。
 ## ER図
 
 ![ER図](/img/ER.svg)
+
+## ローカルリポジトリの削除  
+`git clone`したローカルリポジトリを完全に削除します。  
+```
+sudo rm -rf Rese-back
+```
