@@ -22,6 +22,27 @@ class ReservationController extends Controller
         return response()->json(['message' => 'Reservation created successfully', 'reservation' => $reservation], 201);
     }
 
+    // 予約内容変更
+    public function update(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'shop_id' => 'required|exists:shops,id',
+            'reservation_time' => 'required|date_format:Y-m-d H:i:s',
+            'reservation_number' => 'required|integer|min:1',
+        ]);
+
+        $reservation = Reservation::find($id);
+
+        if (!$reservation) {
+            return response()->json(['message' => 'Reservation not found'], 404);
+        }
+
+        $reservation->update($validatedData);
+
+        return response()->json(['message' => 'Reservation updated successfully'], 200);
+    }
+
     // 予約削除
     public function destroy($id)
     {
