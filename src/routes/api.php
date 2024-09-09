@@ -7,6 +7,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\ReviewController;
 use App\Models\User;
 
 /*
@@ -46,6 +47,13 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
     // 予約登録
     Route::post('/reservations', [ReservationController::class, 'store'])->name('storeReservation');
+    // 予約内容更新
+    Route::put('/reservations/{id}', [ReservationController::class, 'update'])->name('updateReservation');
     // 予約削除 なるべく{id}で実装した方がいい気がする。
     Route::delete('/reservations/{id}', [ReservationController::class, 'destroy'])->name('destroyReservation');
+
+
+    // レビュー投稿
+    Route::post('/reviews', [ReviewController::class, 'store'])->name('storeReview');
+    Route::get('/reviews/shops/{id}', [ReviewController::class, 'getReviewsByShop'])->name('getReviewsByShop');
 });
