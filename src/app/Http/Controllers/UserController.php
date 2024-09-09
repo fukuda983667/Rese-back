@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\Review;
+use Carbon\Carbon;
 
 
 class UserController extends Controller
@@ -32,22 +34,49 @@ class UserController extends Controller
         // お気に入り店舗と予約情報を取得
         $likes = $user->likeShops->map(function ($shop) {
             $shop->isLiked = true;
+
+            // レビューの平均評価を計算し、小数点第二位で切り捨て
+            $averageRating = Review::where('shop_id', $shop->id)
+                                    ->avg('rating');
+            $shop->rating = floor($averageRating * 10) / 10;
             return $shop;
         });
 
-        // 予約情報を予約時間でソート。フロントで予約が早い順に表示したいから。
+
+        // 予約情報を取得し、予約時間でソート
         $reservations = $user->reservations()->with('shop')->orderBy('reservation_time')->get();
 
-        // IDを1から振り直す。ユーザが登録中の予約に番号振り(フロントで処理してもいいけどコードを増やしたくない。)
-        // 可能な限りデータの処理はバックでやっときたい。
-        $reservations = $reservations->map(function ($reservation, $index) {
+        // 現在時刻を取得
+        $now = Carbon::now();
+
+        // 予約情報と来店履歴情報に分ける
+        $futureReservations = [];
+        $pastReservations = [];
+
+        foreach ($reservations as $reservation) {
+            if ($reservation->reservation_time > $now) {
+                $futureReservations[] = $reservation; // 予約情報
+            } else {
+                $pastReservations[] = $reservation; // 来店履歴情報
+            }
+        }
+
+        // 予約情報のIDを1から順に付ける
+        $futureReservations = collect($futureReservations)->map(function ($reservation, $index) {
+            $reservation->new_id = $index + 1;
+            return $reservation;
+        });
+
+        // 来店履歴情報のIDを新しい時間から順に付ける
+        $pastReservations = collect($pastReservations)->sortByDesc('reservation_time')->values()->map(function ($reservation, $index) {
             $reservation->new_id = $index + 1;
             return $reservation;
         });
 
         return response()->json([
             'likes' => $likes,
-            'reservations' => $reservations,
+            'reservations' => $futureReservations,
+            'visitHistory' => $pastReservations,
         ], 200);
     }
 }

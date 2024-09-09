@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Shop;
+use App\Models\Review;
 use Illuminate\Support\Facades\Auth;
 
 class ShopController extends Controller
@@ -20,6 +21,12 @@ class ShopController extends Controller
         // 全店舗の情報を取得し、各店舗にisLikedプロパティを追加
         $shops = Shop::all()->map(function ($shop) use ($likedShops) {
             $shop->isLiked = in_array($shop->id, $likedShops);
+
+            // レビューの平均評価を計算し、小数点第二位で切り捨て
+            $averageRating = Review::where('shop_id', $shop->id)
+                                    ->avg('rating');
+            $shop->rating = floor($averageRating * 10) / 10;
+
             return $shop;
         });
 
