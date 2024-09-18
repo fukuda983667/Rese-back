@@ -24,6 +24,9 @@ use App\Models\User;
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
+Route::get('/helloworld', function () {
+    return response()->json(['message' => 'Hello, World']);
+});
 
 
 //認証中(ログイン中)の時だけ叩ける

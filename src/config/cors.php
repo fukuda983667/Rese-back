@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost', 'http://localhost:3000', 'http://localhost:8080'],//nginxでサーバー立ててるから
+    'allowed_origins' => ['http://localhost', 'http://localhost:3000', 'http://localhost:8080', 'https://rese.coachtechfukuda', 'https://dlsw1xq0rsy4v.cloudfront.net'],//nginxでサーバー立ててるから
 
     'allowed_origins_patterns' => [],
 
