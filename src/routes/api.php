@@ -35,7 +35,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // admin用の登録ルート
 Route::post('/admin/register', [AuthController::class, 'registerAdmin'])->name('registerAdmin');
 
-// 認証メール再送信用
+// 認証メール再送信用　実装してない
 Route::post('/email/resend', function (Request $request) {
     if ($request->user()->hasVerifiedEmail()) {
         return response()->json(['message' => '既にメール認証済みです。'], 400);
