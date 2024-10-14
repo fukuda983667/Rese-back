@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\Review;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Config;
 
 
 class UserController extends Controller
@@ -34,6 +35,9 @@ class UserController extends Controller
         // お気に入り店舗と予約情報を取得
         $likes = $user->likeShops->map(function ($shop) {
             $shop->isLiked = true;
+
+            // フルパスに変換
+            $shop->image_url = Config::get('app.url') . '/storage/shop/' . $shop->image_url;
 
             // レビューの平均評価を計算し、小数点第二位で切り捨て
             $averageRating = Review::where('shop_id', $shop->id)

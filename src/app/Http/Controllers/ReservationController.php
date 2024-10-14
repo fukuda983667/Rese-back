@@ -4,9 +4,24 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Reservation;
+use Carbon\Carbon;
 
 class ReservationController extends Controller
 {
+    // vendorユーザが予約情報を取得する
+    public function getReservationsByShop(Request $request, $shop_id)
+    {
+        $date = Carbon::parse($request->query('date', Carbon::now()->toDateString()))->toDateString(); // 日付部分のみを取得
+
+        $reservations = Reservation::where('shop_id', $shop_id)
+            ->whereDate('reservation_time', $date) // 日付でフィルタリング
+            ->orderBy('reservation_time', 'asc') // 予約時間を早い順に並び替え
+            ->get();
+
+        return response()->json(['reservations' => $reservations], 200);
+    }
+
+
     // 予約登録
     public function store(Request $request)
     {
