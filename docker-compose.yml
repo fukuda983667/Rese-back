@@ -15,7 +15,7 @@ services:
     build: ./docker/php
     # デフォルトでコンテナ内に一般ユーザーで入る。ファイルやフォルダの作成等基本操作は一般ユーザで。
     # 一部artisanコマンドがエラーで実行できないため、
-    # docker-compose exec -u root php bashとしてルートユーザでコンテナ内に入れば実行できる。
+    # docker-compose exec -u root php bashでルートユーザでコンテナ内に入れば実行できる。
     user: "1000:1000"
     volumes:
       - ./src:/var/www/
