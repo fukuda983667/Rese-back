@@ -19,8 +19,8 @@ class ShopController extends Controller
             'name' => 'required|string|max:15',
             'region' => 'required|string|max:20',
             'genre' => 'required|string|max:20',
-            'description' => 'nullable|string|max:150',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // 画像は任意
+            'description' => 'required|string|max:150',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         // 画像ファイルの保存処理
@@ -113,8 +113,8 @@ class ShopController extends Controller
             'name' => 'required|string|max:15',
             'region' => 'required|string|max:20',
             'genre' => 'required|string|max:20',
-            'description' => 'nullable|string|max:150',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // 画像は任意
+            'description' => 'required|string|max:150',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         // 店舗を取得

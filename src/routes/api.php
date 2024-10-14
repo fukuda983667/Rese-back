@@ -23,6 +23,7 @@ use App\Models\User;
 |
 */
 
+// テスト用
 Route::get('/helloworld', function () {
     return response()->json(['message' => 'Hello, World']);
 });
