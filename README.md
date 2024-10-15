@@ -11,6 +11,8 @@ backはRESTfull APIの提供をします。
 
 ## 環境構築
 
+1. Rese-frontの環境構築から始めてください。https://github.com/fukuda983667/Rese-front
+
 1. リポジトリをクローンしたい任意のディレクトリで以下のコマンドを実行してください。
 
     ```bash
