@@ -59,11 +59,11 @@ backはRESTfull APIの提供をします。
 
     https://mailtrap.io/
 
-3. 番号の手順に従って環境変数をコピーしてください。
+3. 番号の手順に従って環境変数をコピーしてください。画像と異なりますが「Laravel 9+」を選択してください
 
     ![env](/img/Mailtrap_env.png)
 
-3. `.env`ファイルの31～36行目に先ほどコピーした値を貼り付け。37,38行目は追記してください。
+3. `.env`ファイルの31～35行目に先ほどコピーした値を貼り付け。36,37,38行目は追記してください。
 
    ```
    MAIL_MAILER=smtp
@@ -71,8 +71,8 @@ backはRESTfull APIの提供をします。
    MAIL_PORT=2525
    MAIL_USERNAME=**************
    MAIL_PASSWORD=**************
-   MAIL_ENCRYPTION=tls
-   MAIL_FROM_ADDRESS=Atte@example.com
+   MAIL_ENCRYPTION=tls　# null→tlsに変更してください。
+   MAIL_FROM_ADDRESS=Rese@example.com
    MAIL_FROM_NAME="${APP_NAME}"
    ```
 
