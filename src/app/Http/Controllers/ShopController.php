@@ -105,7 +105,7 @@ class ShopController extends Controller
 
 
     // 店舗情報更新
-    public function update(Request $request)
+    public function update(Request $request, $id)
     {
         // バリデーション
         $request->validate([
@@ -118,7 +118,11 @@ class ShopController extends Controller
         ]);
 
         // 店舗を取得
-        $shop = Shop::find($request['id']);
+        $shop = Shop::find($id);
+
+        if (!$shop || $shop->user_id !== Auth::id()) {
+            return response()->json(['message' => '店舗が見つかりません'], 404);
+        }
 
         if (!$shop || $shop->user_id !== Auth::id()) {
             return response()->json(['message' => '店舗が見つかりません', 404]);
