@@ -105,5 +105,5 @@ Route::group(['middleware' => ['auth:sanctum', 'verified', 'vendor']], function 
     // 新規店舗作成
     Route::post('/vendor/shop/create', [ShopController::class, 'store'])->name('storeShop');
     // 店舗情報更新
-    Route::post('/vendor/shop/update', [ShopController::class, 'update'])->name('updateShop');
+    Route::put('/vendor/shop/update', [ShopController::class, 'update'])->name('updateShop');
 });
