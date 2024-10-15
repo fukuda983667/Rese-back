@@ -46,6 +46,12 @@ backはRESTfull APIの提供をします。
     cp .env.example .env
     ```
 
+6. `.env`ファイルを編集し、必要な環境変数を設定します（5行目）。
+
+   ```
+   APP_URL=http://localhost:8080
+   ```
+
 6. `.env`ファイルを編集し、必要な環境変数を設定します（11～16行目）。
 
    ```
@@ -94,6 +100,11 @@ backはRESTfull APIの提供をします。
 
     ```bash
     php artisan db:seed
+    ```
+
+9. ストレージのシンボリックリンク作成します。
+    ```bash
+    php artisan storage:link
     ```
 
 10. アプリケーションがhttp://localhost:3000 で利用可能になります。
