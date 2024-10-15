@@ -55,6 +55,27 @@ backはRESTfull APIの提供をします。
    DB_PASSWORD=laravel_pass
    ```
 
+3. Mailtrapでメール認証機能をテストするため、アカウントを作成してください。
+
+    https://mailtrap.io/
+
+3. 番号の手順に従って環境変数をコピーしてください。
+
+    ![env](/img/Mailtrap_env.png)
+
+3. `.env`ファイルの31～36行目に先ほどコピーした値を貼り付け。37,38行目は追記してください。
+
+   ```
+   MAIL_MAILER=smtp
+   MAIL_HOST=sandbox.smtp.mailtrap.io
+   MAIL_PORT=2525
+   MAIL_USERNAME=**************
+   MAIL_PASSWORD=**************
+   MAIL_ENCRYPTION=tls
+   MAIL_FROM_ADDRESS=Atte@example.com
+   MAIL_FROM_NAME="${APP_NAME}"
+   ```
+
 7. アプリケーションキーを生成します。
 
     ```bash
@@ -75,6 +96,10 @@ backはRESTfull APIの提供をします。
 
 10. アプリケーションがhttp://localhost:3000 で利用可能になります。
    ※Rese-frontの環境構築が必要です。
+
+9. ユーザー登録後、MailtrapのInboxに認証メールが届くので、Verify Email Addressをクリックして認証を完了してください。
+
+![認証メール](/img/認証メール.png)
 
 ## 仕様技術(実行環境)
 
