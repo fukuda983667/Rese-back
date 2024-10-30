@@ -10,6 +10,8 @@ use App\Http\Controllers\ShopController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\GenreController;
+use App\Http\Controllers\RegionController;
 use App\Models\User;
 
 /*
@@ -106,4 +108,8 @@ Route::group(['middleware' => ['auth:sanctum', 'verified', 'vendor']], function 
     Route::post('/vendor/shop/create', [ShopController::class, 'store'])->name('storeShop');
     // 店舗情報更新
     Route::put('/vendor/shop/update/{id}', [ShopController::class, 'update'])->name('updateShop');
+
+    // 新規店舗作成時にgenresテーブルとregionsテーブルを取得する
+    Route::get('/genres', [GenreController::class, 'getGenres'])->name('sgetGenres');
+    Route::get('/regions', [RegionController::class, 'getRegions'])->name('getRegions');
 });

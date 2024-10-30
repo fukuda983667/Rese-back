@@ -17,8 +17,6 @@ class UserController extends Controller
     {
         // 認証されたユーザーを取得
         $user = $request->user();
-        // お気に入り店舗も取得
-        // $user->load('favorites.shop');
 
         // ユーザー情報をログに記録（デバッグ用）
         \Log::info($user);
@@ -33,7 +31,7 @@ class UserController extends Controller
         $user = Auth::user();
 
         // お気に入り店舗と予約情報を取得
-        $likes = $user->likeShops->map(function ($shop) {
+        $likes = $user->likeShops()->with(['genre', 'region'])->get()->map(function ($shop) {
             $shop->isLiked = true;
 
             // フルパスに変換
@@ -43,13 +41,17 @@ class UserController extends Controller
             $averageRating = Review::where('shop_id', $shop->id)
                                     ->avg('rating');
             $shop->rating = floor($averageRating * 10) / 10;
+
+            // リレーションから genre と region を取得
+            $shop->genre_name = $shop->genre->name ?? null;
+            $shop->region_name = $shop->region->name ?? null;
+
             return $shop;
         });
 
 
         // 予約情報を取得し、予約時間でソート
         $reservations = $user->reservations()->with('shop')->orderBy('reservation_time')->get();
-
         // 現在時刻を取得
         $now = Carbon::now();
 

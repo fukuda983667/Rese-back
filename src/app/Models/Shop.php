@@ -33,4 +33,16 @@ class Shop extends Model
     {
         return $this->belongsToMany(User::class, 'likes');
     }
+
+    // Regionとのリレーション
+    public function region()
+    {
+        return $this->belongsTo(Region::class);
+    }
+
+    // Genreとのリレーション
+    public function genre()
+    {
+        return $this->belongsTo(Genre::class);
+    }
 }

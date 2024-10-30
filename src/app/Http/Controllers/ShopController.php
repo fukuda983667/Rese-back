@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Shop;
 use App\Models\Review;
+use App\Models\Genre;
+use App\Models\Region;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
@@ -17,8 +19,8 @@ class ShopController extends Controller
         // バリデーション
         $request->validate([
             'name' => 'required|string|max:15',
-            'region' => 'required|string|max:20',
-            'genre' => 'required|string|max:20',
+            'region_id' => 'required|integer|exists:regions,id',
+            'genre_id' => 'required|integer|exists:genres,id',
             'description' => 'required|string|max:150',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
@@ -34,8 +36,8 @@ class ShopController extends Controller
         // 店舗データの作成
         $shop = new Shop();
         $shop->name = $request->name;
-        $shop->region = $request->region;
-        $shop->genre = $request->genre;
+        $shop->region_id = $request->region_id;
+        $shop->genre_id = $request->genre_id;
         $shop->description = $request->description;
         $shop->user_id = Auth::id(); // 現在の認証ユーザーを設定
         $shop->image_url = $imagePath;
@@ -55,7 +57,7 @@ class ShopController extends Controller
         $baseUrl = Config::get('app.url') . '/storage/shop/'; //envのAPP_URLを利用して店舗画像を保存しているディレクトリのパスを設定
 
         // 全店舗の情報を取得し、各店舗にisLikedプロパティを追加
-        $shops = Shop::all()->map(function ($shop) use ($likedShops, $baseUrl) {
+        $shops = Shop::with(['genre', 'region'])->get()->map(function ($shop) use ($likedShops, $baseUrl) {
             $shop->isLiked = in_array($shop->id, $likedShops);
             $shop->image_url = $baseUrl . $shop->image_url; //店舗画像をフルパスにして格納
 
@@ -64,25 +66,38 @@ class ShopController extends Controller
                                     ->avg('rating');
             $shop->rating = floor($averageRating * 10) / 10;
 
+            // genreとregionのnameを追加
+            $shop->genre_name = $shop->genre ? $shop->genre->name : null;
+            $shop->region_name = $shop->region ? $shop->region->name : null;
+
             return $shop;
         });
 
-        // ジャンルの重複を排除した配列を作成
-        $genres = Shop::pluck('genre')->unique()->values()->all();
+        // genres テーブルからのデータ取得
+        $genres = Genre::pluck('name')->unique()->values()->all();
+
+        // regions テーブルからのデータ取得
+        $regions = Region::pluck('name')->unique()->values()->all();
 
         // レスポンスをJSON形式で返却
-        return response()->json(compact('shops', 'genres'), 200);
+        return response()->json(compact('shops', 'genres', 'regions'), 200);
     }
 
 
     //一般userが店舗の詳細情報を取得
     public function detailShow($id)
     {
-        $shop = Shop::find($id);
+        // shopの詳細情報をgenreとregionの情報と一緒に取得
+        $shop = Shop::with(['genre', 'region'])->find($id);
 
         if ($shop) {
             // img_urlをフルパスに変換
             $shop->image_url = Config::get('app.url') . '/storage/shop/' . $shop->image_url;
+
+            // genre_name と region_name カラムを追加
+            $shop->genre_name = $shop->genre ? $shop->genre->name : null;
+            $shop->region_name = $shop->region ? $shop->region->name : null;
+
             return response()->json(compact('shop'),200);
         } else {
             return response()->json(['message' => 'Shop not found'], 404);
@@ -97,7 +112,13 @@ class ShopController extends Controller
 
         if ($shop) {
             $shop->image_url = Config::get('app.url') . '/storage/shop/' . $shop->image_url;
-            return response()->json(compact('shop'),200);
+
+            // genres テーブルからのデータ取得 (id と name)
+            $genres = Genre::select('id', 'name')->get();
+            // regions テーブルからのデータ取得 (id と name)
+            $regions = Region::select('id', 'name')->get();
+
+            return response()->json(compact('shop', 'genres', 'regions'),200);
         } else {
             return response()->json(['message' => 'Shop not found'], 404);
         }
@@ -111,8 +132,8 @@ class ShopController extends Controller
         $request->validate([
             'id' => 'required|integer|exists:shops,id',
             'name' => 'required|string|max:15',
-            'region' => 'required|string|max:20',
-            'genre' => 'required|string|max:20',
+            'region_id' => 'required|integer|exists:regions,id',
+            'genre_id' => 'required|integer|exists:genres,id',
             'description' => 'required|string|max:150',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
@@ -124,13 +145,9 @@ class ShopController extends Controller
             return response()->json(['message' => '店舗が見つかりません'], 404);
         }
 
-        if (!$shop || $shop->user_id !== Auth::id()) {
-            return response()->json(['message' => '店舗が見つかりません', 404]);
-        }
-
         // 画像ファイルの保存処理
         if ($request->hasFile('image')) {
-            // 古い画像を削除する場合
+            // 古い画像を削除
             if ($shop->image_url) {
                 Storage::disk('public')->delete('shop/' . $shop->image_url);
             }
@@ -142,8 +159,8 @@ class ShopController extends Controller
 
         // 店舗情報の更新
         $shop->name = $request->name;
-        $shop->region = $request->region;
-        $shop->genre = $request->genre;
+        $shop->region_id = $request->region_id;
+        $shop->genre_id = $request->genre_id;
         $shop->description = $request->description;
 
         $shop->save();
