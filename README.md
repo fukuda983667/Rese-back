@@ -79,7 +79,7 @@ backはRESTfull APIの提供をします。
    MAIL_PORT=2525
    MAIL_USERNAME=**************
    MAIL_PASSWORD=**************
-   MAIL_ENCRYPTION=tls　# null→tlsに変更してください。
+   MAIL_ENCRYPTION=tls # null→tlsに変更してください。
    MAIL_FROM_ADDRESS=Rese@example.com
    MAIL_FROM_NAME="${APP_NAME}"
    ```
