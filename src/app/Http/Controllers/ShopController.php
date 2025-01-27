@@ -87,18 +87,28 @@ class ShopController extends Controller
     //一般userが店舗の詳細情報を取得
     public function detailShow($id)
     {
-        // shopの詳細情報をgenreとregionの情報と一緒に取得
+        $user = Auth::user();
+
+        // 店舗の詳細情報を genre と region の情報と一緒に取得
         $shop = Shop::with(['genre', 'region'])->find($id);
 
         if ($shop) {
-            // img_urlをフルパスに変換
+            // 店舗画像のフルパスを設定
             $shop->image_url = Config::get('app.url') . '/storage/shop/' . $shop->image_url;
 
             // genre_name と region_name カラムを追加
             $shop->genre_name = $shop->genre ? $shop->genre->name : null;
             $shop->region_name = $shop->region ? $shop->region->name : null;
 
-            return response()->json(compact('shop'),200);
+            // 現在のユーザーがその店舗をお気に入り登録しているか確認
+            $shop->isLiked = $user ? $user->likes->pluck('shop_id')->contains($shop->id) : false;
+
+            // 店舗のレビュー平均評価を計算（小数点第二位で切り捨て）
+            $averageRating = Review::where('shop_id', $shop->id)
+                                    ->avg('rating');
+            $shop->rating = $averageRating ? floor($averageRating * 10) / 10 : null;
+
+            return response()->json(compact('shop'), 200);
         } else {
             return response()->json(['message' => 'Shop not found'], 404);
         }
@@ -108,6 +118,7 @@ class ShopController extends Controller
     //vendorユーザが運営する店舗の情報取得
     public function getMyShop($id)
     {
+        $user = Auth::user();
         $shop = Shop::find($id);
 
         if ($shop) {

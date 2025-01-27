@@ -2,10 +2,8 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
 
 class DatabaseSeeder extends Seeder
 {
@@ -14,11 +12,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // `storage/app/public/shop` ディレクトリを削除
+        // `storage/app/public/shop,review` ディレクトリを削除
         File::deleteDirectory(storage_path('app/public/shop'));
+        File::deleteDirectory(storage_path('app/public/review'));
 
-        // `public/img/shop` を `storage/app/public/shop` にコピー
+        // `public/img/shop,review` を `storage/app/public/shop,review` にコピー
         File::copyDirectory(public_path('img/shop'), storage_path('app/public/shop'));
+        File::copyDirectory(public_path('img/review'), storage_path('app/public/review'));
 
         // 各シーダークラスを呼び出し
         $this->call([

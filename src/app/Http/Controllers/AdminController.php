@@ -11,15 +11,15 @@ use Illuminate\Support\Facades\Mail;
 class AdminController extends Controller
 {
     public function getVendors() {
-        // roleが'vendor'のユーザーを取得
-        $vendors = User::where('role', 'vendor')->get();
+        // roleが'vendor'のユーザーと、その運営する店舗情報を取得
+        $vendors = User::where('role', 'vendor')
+            ->with('shops') // shopsリレーションをロード
+            ->get();
 
         return response()->json([
             'vendors' => $vendors,
         ], 200);
     }
-
-
 
     public function sendEmail(Request $request)
     {

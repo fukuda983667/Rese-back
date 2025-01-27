@@ -38,34 +38,25 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // admin用の登録ルート
 Route::post('/admin/register', [AuthController::class, 'registerAdmin'])->name('registerAdmin');
 
-// 認証メール再送信用　実装してない
-Route::post('/email/resend', function (Request $request) {
-    if ($request->user()->hasVerifiedEmail()) {
-        return response()->json(['message' => '既にメール認証済みです。'], 400);
-    }
-
-    $request->user()->sendEmailVerificationNotification();
-
-    return response()->json(['message' => '確認メールを再送信しました。'], 200);
-})->middleware(['auth', 'throttle:6,1'])->name('verification.resend');
-
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
     // フロントのnuxt3でnuxt-auth-sanctumモジュールのメソッド使用すると勝手に/userを叩く
     Route::get('/user', [UserController::class, 'getUser'])->name('getUser');
+
+    //個別店舗情報取得
+    Route::get('/shops/{id}', [ShopController::class, 'detailShow'])->name('detailShow');
+    Route::get('/reviews/shops/{id}', [ReviewController::class, 'getReviewsByShop'])->name('getReviewsByShop');
 });
 
 
 //認証中(ログイン中)かつ一般ユーザだけ叩ける
 Route::group(['middleware' => ['auth:sanctum', 'verified', 'user']], function () {
 
-    // エンドポイントを/usersにして/users/{id}みたいにした方がいい？
     Route::get('/user/my-page', [UserController::class, 'getMyPage'])->name('getMyPage');
 
     //店舗情報一覧取得
     Route::get('/shops', [ShopController::class, 'getShops'])->name('getShops');
-    //個別店舗情報取得
-    Route::get('/shops/{id}', [ShopController::class, 'detailShow'])->name('detailShow');
+
 
     // お気に入り店舗を追加する
     Route::post('/likes', [LikeController::class, 'toggleLike'])->name('toggleLike');
@@ -74,12 +65,14 @@ Route::group(['middleware' => ['auth:sanctum', 'verified', 'user']], function ()
     Route::post('/reservations', [ReservationController::class, 'store'])->name('storeReservation');
     // 予約内容更新
     Route::put('/reservations/{id}', [ReservationController::class, 'update'])->name('updateReservation');
-    // 予約削除 なるべく{id}で実装した方がいい気がする。
+    // 予約削除
     Route::delete('/reservations/{id}', [ReservationController::class, 'destroy'])->name('destroyReservation');
 
     // レビュー投稿
     Route::post('/reviews', [ReviewController::class, 'store'])->name('storeReview');
-    Route::get('/reviews/shops/{id}', [ReviewController::class, 'getReviewsByShop'])->name('getReviewsByShop');
+    Route::get('/reviews/shops/{id}/user', [ReviewController::class, 'getUserReview'])->name('getUserReview');
+    Route::put('/reviews/shops/{id}/user', [ReviewController::class, 'updateUserReview'])->name('updateUserReview');
+    Route::delete('/reviews/shops/{id}/user', [ReviewController::class, 'deleteUserReview'])->name('deleteUserReview');
 });
 
 
@@ -92,6 +85,9 @@ Route::group(['middleware' => ['auth:sanctum', 'verified', 'admin']], function (
     Route::get('/admin/vendors', [AdminController::class, 'getVendors'])->name('getVendors');
     // メール送信
     Route::post('/admin/send-email', [AdminController::class, 'sendEmail'])->name('sendEmail');
+
+    // レビュー削除
+    Route::delete('/admin/reviews/{id}', [ReviewController::class, 'deleteReview'])->name('deleteReview');
 });
 
 

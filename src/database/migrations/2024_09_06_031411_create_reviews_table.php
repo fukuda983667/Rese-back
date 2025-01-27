@@ -15,10 +15,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('shop_id')->constrained('shops')->onDelete('cascade');
-            $table->string('review_title', 20);
-            $table->text('review_text', 100);
+            $table->text('review_text', 400);
+            $table->string('image_url')->nullable();
             $table->unsignedTinyInteger('rating')->checkBetween(1, 5); // (整数 1～5)
             $table->timestamps();
+            $table->unique(['user_id', 'shop_id'], 'unique_user_shop');
         });
     }
 

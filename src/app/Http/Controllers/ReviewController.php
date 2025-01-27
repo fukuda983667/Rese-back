@@ -6,26 +6,10 @@ use Illuminate\Http\Request;
 use App\Models\Review;
 use App\Models\Shop;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
 
 class ReviewController extends Controller
 {
-    //レビュー投稿機能
-    public function store(Request $request)
-    {
-        $validatedData = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'shop_id' => 'required|exists:shops,id',
-            'review_title' => 'required|string|max:20',
-            'review_text' => 'required|string|max:100',
-            'rating' => 'required|integer|min:1|max:5',
-        ]);
-
-        $review = Review::create($validatedData);
-
-        return response()->json(['message' => 'review created successfully', 'review' => $review], 201);
-    }
-
-
     // 店舗ごとのレビュー一覧を取得
     public function getReviewsByShop($id)
     {
@@ -44,10 +28,161 @@ class ReviewController extends Controller
             ])
             ->get();
 
-        if ($reviews->isEmpty()) {
-            return response()->json(['message' => 'No reviews found for this shop.'], 404);
+        return response()->json(['shop_name' => $shopName, 'reviews' => $reviews], 200);
+    }
+
+    // ユーザが投稿したレビューを取得
+    public function getUserReview($id)
+    {
+        // ログイン中のユーザーを取得
+        $user = Auth::user();
+
+        // 指定されたショップIDとユーザーIDに基づいてレビューを取得
+        $review = Review::where('shop_id', $id)
+                        ->where('user_id', $user->id)
+                        ->first();
+
+        if (!$review) {
+            return response()->json(['message' => 'レビュー投稿がありません'], 404);
         }
 
-        return response()->json(['shop_name' => $shopName, 'reviews' => $reviews], 200);
+        return response()->json(['review' => $review], 200);
+    }
+
+
+    //レビュー投稿機能
+    public function store(Request $request)
+    {
+        $userId = Auth::id();
+
+        $validatedData = $request->validate([
+            'shop_id' => 'required|exists:shops,id',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
+            'review_text' => 'required|string|max:400',
+            'rating' => 'required|integer|min:1|max:5',
+        ]);
+
+        $validatedData['user_id'] = $userId;
+
+        // ユーザーがすでにレビューしているか確認
+        $existingReview = Review::where('user_id', $userId)
+                                ->where('shop_id', $request->shop_id)
+                                ->first();
+
+        if ($existingReview) {
+            return response()->json(['message' => 'すでにレビューが投稿されています'], 409); // 409 Conflict
+        }
+
+        // 画像がアップロードされた場合の処理
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $uniqueFileName = uniqid() . '.' . $image->getClientOriginalExtension(); // 一意のファイル名を生成
+            $image->storeAs('review', $uniqueFileName, 'public'); // 保存先を指定して保存
+            $validatedData['image_url'] = $uniqueFileName; // ファイル名のみを保存
+        } else {
+            $validatedData['image_url'] = null; // 画像がない場合は null を設定
+        }
+
+        $review = Review::create($validatedData);
+
+        return response()->json(['message' => 'レビューを投稿しました', 'review' => $review], 201);
+    }
+
+
+    // レビュー編集機能
+    public function updateUserReview(Request $request, $shopId)
+    {
+        $userId = Auth::id(); // ログイン中のユーザーID
+
+        // レビューが存在するか確認
+        $review = Review::where('shop_id', $shopId)->where('user_id', $userId)->first();
+
+        if (!$review) {
+            return response()->json(['message' => 'レビューが見つかりません'], 404);
+        }
+
+        // バリデーション
+        $validatedData = $request->validate([
+            'review_text' => 'required|string|max:400',
+            'rating' => 'required|integer|min:1|max:5',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
+        ]);
+
+        // 新しい画像がアップロードされた場合
+        if ($request->hasFile('image')) {
+
+            //既存の画像削除
+            $fileName = basename($review->image_url);
+            $existingImagePath = public_path('storage/review/' . $fileName);
+            if (File::exists($existingImagePath)) {
+                File::delete($existingImagePath);
+            }
+
+            $image = $request->file('image');
+            $uniqueFileName = uniqid() . '.' . $image->getClientOriginalExtension(); // 一意のファイル名を生成
+            $image->storeAs('review', $uniqueFileName, 'public'); // 保存先を指定して保存
+            $validatedData['image_url'] = $uniqueFileName; // 新しい画像のファイル名を設定
+        }
+
+        // レビューを更新
+        $review->update($validatedData);
+
+        return response()->json(['message' => 'レビューが更新されました', 'review' => $review], 200);
+    }
+
+
+    // ユーザが自身で投稿したレビューを削除
+    public function deleteUserReview($shopId)
+    {
+        $userId = Auth::id(); // ログイン中のユーザーID
+
+        // ユーザーのレビューを取得
+        $review = Review::where('shop_id', $shopId)->where('user_id', $userId)->first();
+
+        if (!$review) {
+            return response()->json(['message' => 'レビューが見つかりません'], 404);
+        }
+
+        // レビューに関連付けられた画像を削除
+        if ($review->image_url) {
+            $fileName = basename($review->image_url);
+            $existingImagePath = public_path('storage/review/' . $fileName);
+
+            if (File::exists($existingImagePath)) {
+                File::delete($existingImagePath);
+            }
+        }
+
+        // レビューを削除
+        $review->delete();
+
+        return response()->json(['message' => 'レビューが削除されました'], 200);
+    }
+
+
+    // adminユーザによるレビュー削除
+    public function deleteReview($reviewId)
+    {
+        // レビューを取得
+        $review = Review::where('id', $reviewId)->first();
+
+        if (!$review) {
+            return response()->json(['message' => 'レビューが見つかりません'], 404);
+        }
+
+        // レビューに関連付けられた画像を削除
+        if ($review->image_url) {
+            $fileName = basename($review->image_url);
+            $existingImagePath = public_path('storage/review/' . $fileName);
+
+            if (File::exists($existingImagePath)) {
+                File::delete($existingImagePath);
+            }
+        }
+
+        // レビューを削除
+        $review->delete();
+
+        return response()->json(['message' => 'レビューが削除されました'], 200);
     }
 }
