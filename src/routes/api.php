@@ -46,6 +46,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     //個別店舗情報取得
     Route::get('/shops/{id}', [ShopController::class, 'detailShow'])->name('detailShow');
     Route::get('/reviews/shops/{id}', [ReviewController::class, 'getReviewsByShop'])->name('getReviewsByShop');
+
+    // genresとregions取得
+    Route::get('/genres', [GenreController::class, 'getGenres'])->name('sgetGenres');
+    Route::get('/regions', [RegionController::class, 'getRegions'])->name('getRegions');
 });
 
 
@@ -68,6 +72,8 @@ Route::group(['middleware' => ['auth:sanctum', 'verified', 'user']], function ()
     // 予約削除
     Route::delete('/reservations/{id}', [ReservationController::class, 'destroy'])->name('destroyReservation');
 
+    // ユーザがその店舗にレビューできるか(来店履歴があるか)
+    Route::get('/reviews/shops/{id}/can-review', [ReviewController::class, 'canUserReview'])->name('canUserReview');
     // レビュー投稿
     Route::post('/reviews', [ReviewController::class, 'store'])->name('storeReview');
     Route::get('/reviews/shops/{id}/user', [ReviewController::class, 'getUserReview'])->name('getUserReview');
@@ -105,7 +111,5 @@ Route::group(['middleware' => ['auth:sanctum', 'verified', 'vendor']], function 
     // 店舗情報更新
     Route::put('/vendor/shop/update/{id}', [ShopController::class, 'update'])->name('updateShop');
 
-    // 新規店舗作成時にgenresテーブルとregionsテーブルを取得する
-    Route::get('/genres', [GenreController::class, 'getGenres'])->name('sgetGenres');
-    Route::get('/regions', [RegionController::class, 'getRegions'])->name('getRegions');
+
 });
