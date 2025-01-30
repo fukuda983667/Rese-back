@@ -5,22 +5,23 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Review;
 use App\Models\Shop;
+use App\Models\Reservation;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 
 class ReviewController extends Controller
 {
     // 店舗ごとのレビュー一覧を取得
-    public function getReviewsByShop($id)
+    public function getReviewsByShop($shopId)
     {
         // 店舗名を取得
-        $shopName = Shop::where('id', $id)->value('name');
+        $shopName = Shop::where('id', $shopId)->value('name');
 
         if (!$shopName) {
             return response()->json(['message' => 'Shop not found.'], 404);
         }
 
-        $reviews = Review::where('shop_id', $id)
+        $reviews = Review::where('shop_id', $shopId)
             ->with([
                 'user' => function($query) {
                     $query->select('id', 'name'); // ユーザー名のみ取得
@@ -32,13 +33,13 @@ class ReviewController extends Controller
     }
 
     // ユーザが投稿したレビューを取得
-    public function getUserReview($id)
+    public function getUserReview($shopId)
     {
         // ログイン中のユーザーを取得
         $user = Auth::user();
 
         // 指定されたショップIDとユーザーIDに基づいてレビューを取得
-        $review = Review::where('shop_id', $id)
+        $review = Review::where('shop_id', $shopId)
                         ->where('user_id', $user->id)
                         ->first();
 
@@ -47,6 +48,23 @@ class ReviewController extends Controller
         }
 
         return response()->json(['review' => $review], 200);
+    }
+
+    // ユーザのレビュー可否(来店履歴があるか)
+    public function canUserReview($shopId)
+    {
+        $user = Auth::user();
+
+        // ユーザーが過去にその店舗を予約したことがあるか確認
+        $hasVisited = Reservation::where('user_id', $user->id)
+                                ->where('shop_id', $shopId)
+                                ->where('reservation_time', '<', now()) // 過去の予約
+                                ->exists();
+
+        return response()->json([
+            'can_review' => $hasVisited,
+            'message' => $hasVisited ? 'レビュー可能です' : '来店履歴がないためレビューできません'
+        ], 200);
     }
 
 
@@ -64,13 +82,23 @@ class ReviewController extends Controller
 
         $validatedData['user_id'] = $userId;
 
+        // 来店履歴があるか確認（過去の予約が存在するか）
+        $hasVisited = Reservation::where('user_id', $userId)
+            ->where('shop_id', $request->shop_id)
+            ->where('reservation_time', '<', now()) // 過去の予約のみ
+            ->exists();
+
+        if (!$hasVisited) {
+            return response()->json(['message' => '来店履歴がないためレビューできません'], 403);
+        }
+
         // ユーザーがすでにレビューしているか確認
         $existingReview = Review::where('user_id', $userId)
                                 ->where('shop_id', $request->shop_id)
                                 ->first();
 
         if ($existingReview) {
-            return response()->json(['message' => 'すでにレビューが投稿されています'], 409); // 409 Conflict
+            return response()->json(['message' => 'すでにレビューが投稿されています'], 409);
         }
 
         // 画像がアップロードされた場合の処理
