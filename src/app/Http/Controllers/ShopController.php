@@ -18,11 +18,11 @@ class ShopController extends Controller
     {
         // バリデーション
         $request->validate([
-            'name' => 'required|string|max:15',
+            'name' => 'required|string|max:50',
             'region_id' => 'required|integer|exists:regions,id',
             'genre_id' => 'required|integer|exists:genres,id',
-            'description' => 'required|string|max:150',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'description' => 'required|string|max:400',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:1024',
         ]);
 
         // 画像ファイルの保存処理
@@ -142,11 +142,11 @@ class ShopController extends Controller
         // バリデーション
         $request->validate([
             'id' => 'required|integer|exists:shops,id',
-            'name' => 'required|string|max:15',
+            'name' => 'required|string|max:50',
             'region_id' => 'required|integer|exists:regions,id',
             'genre_id' => 'required|integer|exists:genres,id',
-            'description' => 'required|string|max:150',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'description' => 'required|string|max:400',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:1024',
         ]);
 
         // 店舗を取得
