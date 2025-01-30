@@ -14,10 +14,11 @@ class ReviewSeeder extends Seeder
      */
     public function run(): void
     {
-        $shopId = 1; // ここではIDが1の店舗に対してレビューを作成する例
-
         // ユーザーをランダムに選んで、レビューを作成
-        User::factory()->count(10)->create()->each(function ($user) use ($shopId) {
+        User::factory()->count(10)->create()->each(function ($user) {
+            // ランダムな shop_id を 1 ～ 5 の範囲で設定
+            $shopId = rand(1, 5);
+
             Review::create([
                 'user_id' => $user->id,
                 'shop_id' => $shopId,
