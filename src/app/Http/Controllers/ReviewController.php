@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Requests\ReviewRequest;
 use App\Models\Review;
 use App\Models\Shop;
 use App\Models\Reservation;
@@ -69,18 +70,9 @@ class ReviewController extends Controller
 
 
     //レビュー投稿機能
-    public function store(Request $request)
+    public function storeReview(ReviewRequest $request)
     {
         $userId = Auth::id();
-
-        $validatedData = $request->validate([
-            'shop_id' => 'required|exists:shops,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
-            'review_text' => 'required|string|max:400',
-            'rating' => 'required|integer|min:1|max:5',
-        ]);
-
-        $validatedData['user_id'] = $userId;
 
         // 来店履歴があるか確認（過去の予約が存在するか）
         $hasVisited = Reservation::where('user_id', $userId)
@@ -102,23 +94,28 @@ class ReviewController extends Controller
         }
 
         // 画像がアップロードされた場合の処理
+        $imageUrl = null; // 画像URLの初期値をnullに設定
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $uniqueFileName = uniqid() . '.' . $image->getClientOriginalExtension(); // 一意のファイル名を生成
             $image->storeAs('review', $uniqueFileName, 'public'); // 保存先を指定して保存
-            $validatedData['image_url'] = $uniqueFileName; // ファイル名のみを保存
-        } else {
-            $validatedData['image_url'] = null; // 画像がない場合は null を設定
+            $imageUrl = $uniqueFileName; // ファイル名のみを設定
         }
 
-        $review = Review::create($validatedData);
+        $review = Review::create([
+            'user_id' => $userId,
+            'shop_id' => $request->shop_id,
+            'review_text' => $request->review_text,
+            'rating' => $request->rating,
+            'image_url' => $imageUrl,
+        ]);
 
         return response()->json(['message' => 'レビューを投稿しました', 'review' => $review], 201);
     }
 
 
     // レビュー編集機能
-    public function updateUserReview(Request $request, $shopId)
+    public function updateUserReview(ReviewRequest $request, $shopId)
     {
         $userId = Auth::id(); // ログイン中のユーザーID
 
@@ -129,31 +126,29 @@ class ReviewController extends Controller
             return response()->json(['message' => 'レビューが見つかりません'], 404);
         }
 
-        // バリデーション
-        $validatedData = $request->validate([
-            'review_text' => 'required|string|max:400',
-            'rating' => 'required|integer|min:1|max:5',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
-        ]);
-
-        // 新しい画像がアップロードされた場合
+        // 画像がアップロードされた場合の処理
+        $imageUrl = $review->image_url; // 初期値は現在の画像URL
         if ($request->hasFile('image')) {
-
-            //既存の画像削除
-            $fileName = basename($review->image_url);
-            $existingImagePath = public_path('storage/review/' . $fileName);
-            if (File::exists($existingImagePath)) {
-                File::delete($existingImagePath);
+            // 既存の画像を削除
+            if ($imageUrl) {
+                $existingImagePath = public_path('storage/review/' . basename($imageUrl));
+                if (File::exists($existingImagePath)) {
+                    File::delete($existingImagePath);
+                }
             }
 
             $image = $request->file('image');
             $uniqueFileName = uniqid() . '.' . $image->getClientOriginalExtension(); // 一意のファイル名を生成
             $image->storeAs('review', $uniqueFileName, 'public'); // 保存先を指定して保存
-            $validatedData['image_url'] = $uniqueFileName; // 新しい画像のファイル名を設定
+            $imageUrl = $uniqueFileName; // 新しい画像のファイル名を設定
         }
 
         // レビューを更新
-        $review->update($validatedData);
+        $review->update([
+            'review_text' => $request->review_text,
+            'rating' => $request->rating,
+            'image_url' => $imageUrl,
+        ]);
 
         return response()->json(['message' => 'レビューが更新されました', 'review' => $review], 200);
     }

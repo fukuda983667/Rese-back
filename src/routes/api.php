@@ -75,7 +75,7 @@ Route::group(['middleware' => ['auth:sanctum', 'verified', 'user']], function ()
     // ユーザがその店舗にレビューできるか(来店履歴があるか)
     Route::get('/reviews/shops/{id}/can-review', [ReviewController::class, 'canUserReview'])->name('canUserReview');
     // レビュー投稿
-    Route::post('/reviews', [ReviewController::class, 'store'])->name('storeReview');
+    Route::post('/reviews', [ReviewController::class, 'storeReview'])->name('storeReview');
     Route::get('/reviews/shops/{id}/user', [ReviewController::class, 'getUserReview'])->name('getUserReview');
     Route::put('/reviews/shops/{id}/user', [ReviewController::class, 'updateUserReview'])->name('updateUserReview');
     Route::delete('/reviews/shops/{id}/user', [ReviewController::class, 'deleteUserReview'])->name('deleteUserReview');
@@ -110,6 +110,4 @@ Route::group(['middleware' => ['auth:sanctum', 'verified', 'vendor']], function 
     Route::post('/vendor/shop/create', [ShopController::class, 'store'])->name('storeShop');
     // 店舗情報更新
     Route::put('/vendor/shop/update/{id}', [ShopController::class, 'update'])->name('updateShop');
-
-
 });
